@@ -1,5 +1,7 @@
 package com.interface21.webmvc.servlet.mvc.tobe;
 
+import com.interface21.webmvc.servlet.mvc.asis.Controller;
+import com.interface21.webmvc.servlet.mvc.asis.ForwardController;
 import jakarta.servlet.http.HttpServletRequest;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,7 +35,7 @@ class HandlerMappingRegisterTest {
 
     @Test
     @DisplayName("등록된 HandlerMapping을 통해 handler를 찾을 수 있다.")
-    void getHandler() {
+    void getHandler1() {
         when(request.getRequestURI()).thenReturn("/get-test");
         when(request.getMethod()).thenReturn("GET");
 
@@ -42,6 +44,33 @@ class HandlerMappingRegisterTest {
         register.addHandlerMapping(handlerMapping);
 
         assertThat(register.getHandler(request)).isInstanceOf(HandlerExecution.class);
+    }
+
+    @Test
+    @DisplayName("등록된 HandlerMapping을 통해 handler를 찾을 수 있다.")
+    void getHandler2() {
+        when(request.getRequestURI()).thenReturn("/");
+        when(request.getMethod()).thenReturn("GET");
+
+        HandlerMapping manualHandlerMapping = new HandlerMapping() {
+            @Override
+            public void initialize() {
+            }
+
+            @Override
+            public Object getHandler(HttpServletRequest request) {
+                if ("/".equals(request.getRequestURI())) {
+                    return new ForwardController("/index.jsp");
+                }
+                return null;
+            }
+        };
+        AnnotationHandlerMapping annotationHandlerMapping = new AnnotationHandlerMapping("samples");
+        annotationHandlerMapping.initialize();
+        register.addHandlerMapping(manualHandlerMapping);
+        register.addHandlerMapping(annotationHandlerMapping);
+
+        assertThat(register.getHandler(request)).isInstanceOf(Controller.class);
     }
 
     @Test

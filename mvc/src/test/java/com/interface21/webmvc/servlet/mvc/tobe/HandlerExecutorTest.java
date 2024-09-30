@@ -8,6 +8,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -41,5 +42,22 @@ class HandlerExecutorTest {
         ModelAndView modelAndView = handlerExecutor.execute(handler, request, response);
 
         assertThat(modelAndView.getObject("id")).isEqualTo("pororo");
+    }
+
+    @Test
+    @DisplayName("핸들러를 처리할 수 없다면 예외가 발생한다.")
+    void invalid() {
+        when(request.getAttribute("id")).thenReturn("pororo");
+        when(request.getRequestURI()).thenReturn("/invalid-test");
+        when(request.getMethod()).thenReturn("GET");
+
+        HandlerMappingRegister register = new HandlerMappingRegister();
+
+        AnnotationHandlerMapping annotationHandlerMapping = new AnnotationHandlerMapping("samples");
+        annotationHandlerMapping.initialize();
+        register.addHandlerMapping(annotationHandlerMapping);
+
+        assertThatThrownBy(() -> register.getHandler(request))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 }
